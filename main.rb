@@ -14,6 +14,15 @@ class SmsCookiesApp < Sinatra::Base
     TerminalNotifier.notify('An error occurred!!!!')
   end
 
+  def self.log(notification)
+    puts notification
+    TerminalNotifier.notify(notification)
+  end
+
+  def log(notification)
+    SmsCookiesApp.log notification
+  end
+
   post '/ask-the-question' do
     session[:conversation_state] ||= :unasked
 
@@ -21,7 +30,7 @@ class SmsCookiesApp < Sinatra::Base
 
     #TODO: smelly.  "and"????
     twilio_response = twilio_response_and_change_state(params[:From], params[:Body])
-    TerminalNotifier.notify('Sending response to Twilio')
+    log('Sending response to Twilio')
     twilio_response.text
   end
 
@@ -41,9 +50,10 @@ class SmsCookiesApp < Sinatra::Base
               ].join(" "))
       end
     else
-      raise "I don't know what to with the state #{session[:conversation_state]}"
+      log "I don't know what to with the state #{session[:conversation_state]}"
+      
+      raise 'hell'
     end
-
   end
 end
 
