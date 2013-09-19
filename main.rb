@@ -29,6 +29,10 @@ class SmsCookiesApp < Sinatra::Base
   #TODO: this looks independently testable
 
   def twilio_response_and_change_state(respondent_long_code, respondent_statement)
+    if respondent_statement == 'reset'
+      session[:conversation_state] = :unasked
+    end
+
     application_long_code = '+14157670800'
 
     if session[:conversation_state] == :unasked
@@ -43,8 +47,12 @@ class SmsCookiesApp < Sinatra::Base
       end
     else
       log "I don't know what to with the state #{session[:conversation_state]}"
-
-      raise 'hell'
+      Twilio::TwiML::Response.new do |r|
+        r.Sms({:from => application_long_code, :to => respondent_long_code},
+              ["I'm confused. Send back 'reset' to start over.",
+               "Current state: '#{session[:conversation_state].to_s}'"
+              ].join(" "))
+      end
     end
   end
 end
