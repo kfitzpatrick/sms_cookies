@@ -3,6 +3,9 @@ require 'twilio-ruby'
 require 'terminal-notifier'
 
 class SmsCookiesApp < Sinatra::Base
+
+  enable :sessions
+
   get '/' do
     'The app should make a POST request to /ask-the-question.'
   end
@@ -12,15 +15,35 @@ class SmsCookiesApp < Sinatra::Base
   end
 
   post '/ask-the-question' do
-    respondent_long_code = params[:From]
+    session[:conversation_state] ||= :unasked
+
+    TerminalNotifier.notify("SMS received. State: #{session[:conversation_state]}")
+
+    #TODO: smelly.  "and"????
+    twilio_response = twilio_response_and_change_state(params[:From], params[:Body])
+    TerminalNotifier.notify('Sending response to Twilio')
+    twilio_response.text
+  end
+
+  #TODO: this looks independently testable
+
+  def twilio_response_and_change_state(respondent_long_code, respondent_statement)
     application_long_code = '+14157670800'
-    puts "Respondent SMSed from #{respondent_long_code}"
-    response = Twilio::TwiML::Response.new do |r|
-      r.Sms({:from => application_long_code, :to => respondent_long_code},
-            "What is your favorite color? You said '#{params[:Body]}'")
+
+    if session[:conversation_state] == :unasked
+      session[:conversation_state] = :asked
+
+      Twilio::TwiML::Response.new do |r|
+        r.Sms({:from => application_long_code, :to => respondent_long_code},
+              ['What is your favorite color?',
+               "You said '#{respondent_statement}'",
+               "Current state: #{session[:conversation_state].to_s}"
+              ].join(" "))
+      end
+    else
+      raise "I don't know what to with the state #{session[:conversation_state]}"
     end
-    TerminalNotifier.notify('Response sent to Twilio')
-    response.text
+
   end
 end
 
@@ -32,7 +55,7 @@ Answered -(confirm!)-> Confirmed
 
 Script
 
-App: What is your favorite color?
+App: What is your favorite color? (ask!)
 
 B: Blue
 
