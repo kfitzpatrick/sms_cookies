@@ -7,21 +7,22 @@ class SmsCookiesApp < Sinatra::Base
   include Logging
 
   get '/' do
-    'The app should make a POST request to /ask-the-question.'
+    ['The app should make a POST request to /ask-the-question.',
+    "RACK_ENV '#{ENV['RACK_ENV']}'"].join("<br/>")
   end
 
   post '/error-occurred' do
-    TerminalNotifier.notify('An error occurred!!!!')
+    log 'An error occurred!!!!'
   end
 
   post '/ask-the-question' do
     session[:conversation_state] ||= :unasked
 
-    TerminalNotifier.notify("SMS received. State: #{session[:conversation_state]}")
+    log "SMS received. State: #{session[:conversation_state]}"
 
     #TODO: smelly.  "and"???? -> StateMachine!?
     twilio_response = twilio_response_and_change_state(params[:From], params[:Body])
-    log('Sending response to Twilio')
+    log 'Sending response to Twilio'
     twilio_response.text
   end
 

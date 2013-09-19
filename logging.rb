@@ -7,8 +7,10 @@ module Logging
 
   class Logger
     def log(msg)
-      puts msg
-      TerminalNotifier.notify(msg)
+      if ENV['RACK_ENV'] == 'development'
+        puts msg
+        TerminalNotifier.notify(msg)
+      end
     end
   end
 
