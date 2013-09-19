@@ -9,4 +9,5 @@ group :development do
   gem 'terminal-notifier'
   gem 'rack-test'
   gem 'rake'
+  gem 'nokogiri'
 end
