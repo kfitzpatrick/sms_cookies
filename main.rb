@@ -1,10 +1,10 @@
 require 'sinatra/base'
 require 'twilio-ruby'
-require 'terminal-notifier'
+require './logging'
 
 class SmsCookiesApp < Sinatra::Base
-
   enable :sessions
+  include Logging
 
   get '/' do
     'The app should make a POST request to /ask-the-question.'
@@ -14,14 +14,6 @@ class SmsCookiesApp < Sinatra::Base
     TerminalNotifier.notify('An error occurred!!!!')
   end
 
-  def self.log(notification)
-    puts notification
-    TerminalNotifier.notify(notification)
-  end
-
-  def log(notification)
-    SmsCookiesApp.log notification
-  end
 
   post '/ask-the-question' do
     session[:conversation_state] ||= :unasked
@@ -51,7 +43,7 @@ class SmsCookiesApp < Sinatra::Base
       end
     else
       log "I don't know what to with the state #{session[:conversation_state]}"
-      
+
       raise 'hell'
     end
   end
