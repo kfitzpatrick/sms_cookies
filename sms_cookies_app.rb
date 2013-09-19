@@ -14,13 +14,12 @@ class SmsCookiesApp < Sinatra::Base
     TerminalNotifier.notify('An error occurred!!!!')
   end
 
-
   post '/ask-the-question' do
     session[:conversation_state] ||= :unasked
 
     TerminalNotifier.notify("SMS received. State: #{session[:conversation_state]}")
 
-    #TODO: smelly.  "and"????
+    #TODO: smelly.  "and"???? -> StateMachine!?
     twilio_response = twilio_response_and_change_state(params[:From], params[:Body])
     log('Sending response to Twilio')
     twilio_response.text
